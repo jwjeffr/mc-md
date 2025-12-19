@@ -1,0 +1,81 @@
+# some default settings
+echo log
+units metal
+newton on
+boundary p p p
+atom_style atomic
+neighbor 1.0 bin
+neigh_modify every 1 delay 5 check yes
+thermo 100
+
+variable temperature equal 600
+variable nsteps equal 1000000
+variable nframes equal 50
+
+variable ntypes equal 5
+variable nswaps equal 5
+
+# initialize lattice from inputs folder
+lattice fcc 3.6 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region box block 0 7 0 7 0 7
+create_box ${ntypes} box
+create_atoms 1 box
+
+# initialize some more properties from input folder
+mass 1 58.933
+mass 2 58.693
+mass 3 51.996
+mass 4 55.845
+mass 5 54.938
+
+pair_style meam
+pair_coeff * * library.meam Co Ni Cr Fe Mn CoNiCrFeMn.meam Co Ni Cr Fe Mn
+
+set type 1 type/ratio 2 0.20 123456
+set type 1 type/ratio 3 0.25 789012
+set type 1 type/ratio 4 0.333333333333 345678
+set type 1 type/ratio 5 0.50 912345
+set type 1 type/subset 4 1 678912
+
+# relax lattice at 0 K and 0 bar
+min_style cg
+min_modify dmax 1.0e-2 line quadratic
+fix min all box/relax iso 0.0 vmax 0.01
+dump relaxation all atom 100 relaxation.dump
+minimize 0.0 1.0e-4 10000 10000
+unfix min
+undump relaxation
+
+# nvt equilibration
+reset_timestep 0
+velocity all create ${temperature} 123456 rot yes dist gaussian
+fix thermo_baro_stat all npt temp ${temperature} ${temperature} $(100.0 * dt) iso 1.0 1.0 $(1000.0 * dt)
+fix recenter_fix all recenter INIT INIT INIT
+dump equilibration all atom 100 equilibration.dump
+run 10000
+undump equilibration
+
+# run mc-md routine
+reset_timestep 0
+
+# do a swap_fix for every atom-atom pair
+
+label fixing_outer_loop
+variable i loop ${ntypes}
+
+   variable jstart equal ${i}+1
+   if "${jstart} > ${ntypes}" then "jump SELF fixing_loop_end"
+   label fixing_inner_loop
+   variable j loop ${jstart} ${ntypes}
+
+      fix swap_fix${i}${j} all atom/swap 1000 ${nswaps} 123456 ${temperature} types ${i} ${j}
+
+      next j
+      jump SELF fixing_inner_loop
+
+   next i
+   jump SELF fixing_outer_loop
+label fixing_loop_end
+
+dump mc_dump all atom 1000 mc.dump
+run ${nsteps}
