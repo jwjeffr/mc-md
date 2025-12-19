@@ -8,4 +8,4 @@ On Palmetto, submit a batch job using my [LAMMPS](https://en.wikipedia.org/wiki/
 sbatch mc.slurm
 ```
 
-If you open `mc.slurm`, you'll see where the LAMMPS executable is defined. You can change this to your own executable if you have one.
+If you open `mc.slurm`, you'll see where the LAMMPS executable is defined. You can change this to your own executable if you have one. The potential in this repo is from the NIST entry [here](https://www.ctcms.nist.gov/potentials/entry/2018--Choi-W-M-Jo-Y-H-Sohn-S-S-et-al--Co-Ni-Cr-Fe-Mn/)
