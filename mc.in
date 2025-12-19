@@ -8,29 +8,37 @@ neighbor 1.0 bin
 neigh_modify every 1 delay 5 check yes
 thermo 100
 
+# variables of interest - we want to run our stuff at 600 K for 1 million steps
+# more steps is better, but takes more compute time. 600 K is an arbitrary choice
 variable temperature equal 600
 variable nsteps equal 1000000
-variable nframes equal 50
 
+# we're running this on the CoNiCrFeMn alloy, so we have 5 atom types
+# nswaps means how many swaps per type pair we have, need to play with this one
+# too little means the simulation runs slowly, too many means we undersample
 variable ntypes equal 5
 variable nswaps equal 5
 
-# initialize lattice from inputs folder
+# initialize lattice, a 7x7x7 lattice with lattice parameter 3.6 angstroms, or 0.36 nanometers
+# doesn't really matter which one we pick, we'll calculate the correct one later
 lattice fcc 3.6 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region box block 0 7 0 7 0 7
 create_box ${ntypes} box
 create_atoms 1 box
 
-# initialize some more properties from input folder
+# molar masses of the atom types
 mass 1 58.933
 mass 2 58.693
 mass 3 51.996
 mass 4 55.845
 mass 5 54.938
 
+# define how the atoms interact
+# this one is a sharp edge, so we just use other people's work
 pair_style meam
 pair_coeff * * library.meam Co Ni Cr Fe Mn CoNiCrFeMn.meam Co Ni Cr Fe Mn
 
+# make an equiatomic solution, i.e. 20% of the atoms are Co, 20% are Ni, etc.
 set type 1 type/ratio 2 0.20 123456
 set type 1 type/ratio 3 0.25 789012
 set type 1 type/ratio 4 0.333333333333 345678
@@ -38,6 +46,8 @@ set type 1 type/ratio 5 0.50 912345
 set type 1 type/subset 4 1 678912
 
 # relax lattice at 0 K and 0 bar
+# this gives us a real lattice parameter
+# this will also save to a file called relaxation.dump, which we can visualize with OVITO
 min_style cg
 min_modify dmax 1.0e-2 line quadratic
 fix min all box/relax iso 0.0 vmax 0.01
@@ -46,7 +56,8 @@ minimize 0.0 1.0e-4 10000 10000
 unfix min
 undump relaxation
 
-# nvt equilibration
+# equilibrate at the given temperature
+# this makes the real run more statistically robust
 reset_timestep 0
 velocity all create ${temperature} 123456 rot yes dist gaussian
 fix thermo_baro_stat all npt temp ${temperature} ${temperature} $(100.0 * dt) iso 1.0 1.0 $(1000.0 * dt)
@@ -56,6 +67,7 @@ run 10000
 undump equilibration
 
 # run mc-md routine
+# here we'll swap atoms and then relax them using molecular dynamics
 reset_timestep 0
 
 # do a swap_fix for every atom-atom pair
@@ -77,5 +89,6 @@ variable i loop ${ntypes}
    jump SELF fixing_outer_loop
 label fixing_loop_end
 
+# run the loop, and dump to a file called mc.dump every 1000 steps
 dump mc_dump all atom 1000 mc.dump
 run ${nsteps}
