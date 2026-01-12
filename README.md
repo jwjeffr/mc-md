@@ -36,6 +36,14 @@ sbatch mc.slurm
 
 If you open `mc.slurm`, you'll see where the LAMMPS executable is defined. By default, I've included my own LAMMPS executable, which any Palmetto user can access. You can change this to your own executable if you have one. The potential in this repo is from the NIST entry [here](https://www.ctcms.nist.gov/potentials/entry/2018--Choi-W-M-Jo-Y-H-Sohn-S-S-et-al--Co-Ni-Cr-Fe-Mn/)
 
+If you get a weird error about newlines, you probably have an encoding error related to differences between how Mac/Windows/Unix deals with things. You can fix it by converting the file:
+
+```bash
+dos2unix mc.slurm
+```
+
+and then resubmitting the `sbatch` command.
+
 ## Monitor the job
 
 You can run the following command to monitor any submitted jobs:
@@ -63,5 +71,6 @@ These commands are all just standard Linux commands. There are a huge amount of 
 ```bash
 cd ..
 ```
+
 
 which takes you to the directory above `mc-md`, which should be your home directory. You don't want to mess with the simulation output while the simulation is running!
