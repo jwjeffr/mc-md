@@ -120,7 +120,7 @@ python sro-parameters.py
 
 which will generate an `sro.pdf` file containing a figure with the SRO parameters. Grab this off of Palmetto onto your local machine, and take a look! The file is included in the GitHub repo as a `.png`:
 
-***PLACEHOLDER***
+![sro parameters](https://raw.githubusercontent.com/jwjeffr/mc-md/refs/heads/main/sro.png)
 
 Each cell in the colormap represents a pair of atom types. E.g., the Cr-Cr cell is the most strongly negative, meaning that the Cr atoms segregate with one another, which is consistent with what the run looks like in OVITO.
 
