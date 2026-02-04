@@ -1,0 +1,4 @@
+cowley_sro_parameters==2.0.0
+matplotlib==3.10.8
+numpy==2.4.2
+ovito==3.14.1

@@ -74,3 +74,54 @@ cd ..
 
 
 which takes you to the directory above `mc-md`, which should be your home directory. You don't want to mess with the simulation output while the simulation is running!
+
+# Analyzing the run
+
+Now that we have a generated `mc.dump` after running the `mc.in` file, we want to analyze it. We can do this with a variety of tools, but the most common is using Python due to its large ecosystem of third-party tools.
+
+We'll use some tools that are popular for most Python users (`numpy`, `matplotlib`), OVITO's library to read in the file for us (`ovito`), as well as our in-house plugin to compute short-range order parameters (`cowley-sro-parameters`).
+
+## Setting up the environment
+
+You'll want to update your repository on Palmetto to grab the new files. You can do this with:
+
+```bash
+git pull origin main
+```
+
+which will merge any changes, which, in this case, are the new analysis files. Make sure you're in the right directory!
+
+Then, we'll want to install the packages above in an isolated environment in what is called a virtual environment. There are a lot of reasons you'd want to do this in general. I'd encourage watching this video [here](https://www.youtube.com/watch?v=Y21OR1OPC9A) to motivate it.
+
+To set up the virtual environment:
+
+```bash
+module add anaconda3
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+The respective commands:
+- Include the `anaconda3` module on Palmetto, which contains the `python` executable
+- Create the virtual environment in the `venv` folder
+- Activate the virtual environment
+- Install the corresponding packages
+
+`requirements.txt` is just a text file with the packages pinned to specific versions.
+
+## Running the analysis script
+
+After setting up the environment, run:
+
+```bash
+python sro-parameters.py
+```
+
+which will generate an `sro.pdf` file containing a figure with the SRO parameters. Grab this off of Palmetto onto your local machine, and take a look! The file is included in the GitHub repo as a `.png`:
+
+***PLACEHOLDER***
+
+Each cell in the colormap represents a pair of atom types. E.g., the Cr-Cr cell is the most strongly negative, meaning that the Cr atoms segregate with one another, which is consistent with what the run looks like in OVITO.
+
+Take a look at the contents of the `sro-parameters.py` script, and try to understand what each line is doing. Any choice of LLM (like GPT) is great for breaking down these scripts line by line.
